@@ -13,7 +13,7 @@ export class AppService {
     let fromElement = (pageNumber-1)*10;
     this.dbConnection.query(`SELECT emp.id, emp.name as name, active, d.name as department
       FROM employees emp JOIN department d ON emp.department_id = d.id
-      WHERE emp.name Like "${searchValue}%" OR d.name Like "${searchValue}%";`, function (err, result) {
+      WHERE emp.name Like "${searchValue}%";`, function (err, result) {
       if (err) throw err;
       return res.send({
         numberOfRecords: result.length,
@@ -34,4 +34,32 @@ export class AppService {
       });
     });
   }
+
+  getEmployee(id, res) {
+    this.dbConnection.query(`SELECT emp.id, emp.name as name, active, d.name as department
+      FROM employees emp JOIN department d ON emp.department_id = d.id
+      WHERE emp.id=${id};`, function (err, result) {
+      if (err) throw err;
+      return res.send(result[0]);
+    });
+  }
+
+  updateEmployee(id, employee, res) {
+    this.dbConnection.query(`UPDATE employees SET name="${employee.name}" WHERE id=${id};`,
+      function (err, result) {
+        if (err) throw err;
+        return res.send({
+          status: 200
+        });
+    });
+  }
+
+  getDepartments(res) {
+    this.dbConnection.query(`SELECT * FROM department;`,
+      function (err, result) {
+        if (err) throw err;
+        return res.send(result);
+      });
+  }
+
 }
