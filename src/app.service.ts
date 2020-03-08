@@ -1,30 +1,19 @@
-import { Injectable, Res } from '@nestjs/common';
-import { response } from 'express';
-const mysql = require('mysql');
-const dbConfig = {
-  host: 'localhost',
-  user: 'root',
-  password: 'Root11@$',
-  database: 'lit_store'
-};
+import { Injectable } from '@nestjs/common';
+import { DbConnectionService } from './dbConnection.service';
 
 @Injectable()
 export class AppService {
-  connection;
+  dbConnection;
 
-  constructor() {
-    this.connection = mysql.createConnection(dbConfig);
-    this.connection.connect((err) => {
-      if (err) throw err;
-      console.log('Connected!');
-    });
+  constructor(dbConnection: DbConnectionService) {
+    this.dbConnection = dbConnection.getConnection();
   }
 
   getEmployees(searchValue, pageNumber, res) {
     let fromElement = (pageNumber-1)*10;
-    this.connection.query(`SELECT au.id, au.name as name, active, d.name as department
-      FROM app_user au JOIN department d ON au.department_id = d.id
-      WHERE au.name Like "${searchValue}%" OR d.name Like "${searchValue}%";`, function (err, result) {
+    this.dbConnection.query(`SELECT emp.id, emp.name as name, active, d.name as department
+      FROM employees emp JOIN department d ON emp.department_id = d.id
+      WHERE emp.name Like "${searchValue}%" OR d.name Like "${searchValue}%";`, function (err, result) {
       if (err) throw err;
       return res.send({
         numberOfRecords: result.length,
@@ -38,7 +27,7 @@ export class AppService {
   }
 
   deleteEmployee(id, res) {
-    this.connection.query(`DELETE FROM app_user WHERE id=${id};`, function (err, result) {
+    this.dbConnection.query(`DELETE FROM employees WHERE id=${id};`, function (err, result) {
       if (err) throw err;
       return res.send({
         status: 200
