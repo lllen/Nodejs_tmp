@@ -45,7 +45,9 @@ export class AppService {
   }
 
   updateEmployee(id, employee, res) {
-    this.dbConnection.query(`UPDATE employees SET name="${employee.name}" WHERE id=${id};`,
+    this.dbConnection.query(`UPDATE employees SET name="${employee.name}",
+    department_id="${employee.departmentId}",
+    active=${employee.active} WHERE id=${id};`,
       function (err, result) {
         if (err) throw err;
         return res.send({
@@ -55,8 +57,7 @@ export class AppService {
   }
 
   getDepartments(res) {
-    this.dbConnection.query(`SELECT * FROM department;`,
-      function (err, result) {
+    this.dbConnection.query(`SELECT * FROM department;`, function (err, result) {
         if (err) throw err;
         return res.send(result);
       });
