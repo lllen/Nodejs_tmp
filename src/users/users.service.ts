@@ -10,12 +10,6 @@ export class UsersService {
   }
 
   async findOne(username: string) {
-    //??????
-    // return await this.dbConnection.query(`SELECT * FROM employees WHERE name="${username}";`, function (err, result) {
-    //   if (err) throw err;
-    //   return result;
-    // });
-    // ??????
-    return {user: 'Admin', password: '123'};
+    return {username: 'Admin', password: '123'};
   }
 }

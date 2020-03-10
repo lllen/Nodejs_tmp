@@ -11,17 +11,18 @@ export class AppService {
 
   getEmployees(searchValue, pageNumber, res) {
     let fromElement = (pageNumber-1)*10;
-    this.dbConnection.query(`SELECT emp.id, emp.name as name, active, d.name as department
+    this.dbConnection.query(`SELECT emp.id as empId, emp.name as empName, active as empActive, d.name as empDepartment
       FROM employees emp JOIN department d ON emp.department_id = d.id
       WHERE emp.name Like "${searchValue}%";`, function (err, result) {
       if (err) throw err;
       return res.send({
         numberOfRecords: result.length,
         pageNumber: pageNumber,
-        data: result.splice(fromElement, 10).map(el => ({
-          ...el,
-          active: el.active ? 'yes' : 'no'
-        })), //todo: do check
+        data: result.length > 10 ?
+          result.splice(fromElement, 10).map(el => ({
+            ...el,
+            active: el.active ? 'yes' : 'no'
+        })) : result
       });
     });
   }
