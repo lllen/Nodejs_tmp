@@ -30,11 +30,7 @@ export class AppService {
       return res.send({
         numberOfRecords: result.length,
         pageNumber: pageNumber,
-        data: result.length > 10 ?
-          result.splice(fromElement, 10).map(el => ({
-            ...el,
-            empActive: el.active ? 'yes' : 'no'
-        })) : result
+        data: result.length > 10 ? result.splice(fromElement, 10) : result
       });
     });
   }
