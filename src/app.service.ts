@@ -33,7 +33,7 @@ export class AppService {
         data: result.length > 10 ?
           result.splice(fromElement, 10).map(el => ({
             ...el,
-            active: el.active ? 'yes' : 'no'
+            empActive: el.active ? 'yes' : 'no'
         })) : result
       });
     });
