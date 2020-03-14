@@ -19,15 +19,22 @@ export class AppService {
     // await app.listen(3000);
   }
 
-  getEmployees(searchValue, pageNumber, res) {
+  // do for userId with token
+  getEmployees({searchValue, pageNumber, username}, res) {
+    console.log(username);
     let fromElement = (pageNumber-1)*10;
     let query;
     searchValue ?
       (query = `SELECT emp.id as empId, emp.name as empName, active as empActive, d.name as empDepartment
-      FROM employees emp JOIN department d ON emp.department_id = d.id
-      WHERE emp.name Like "${searchValue}%";`) :
+      FROM employees emp 
+        JOIN department d ON emp.department_id = d.id
+        JOIN app_users au ON emp.user_id = au.id
+      WHERE emp.name Like "${searchValue}%" AND au.username="${username}";`) :
       (query = `SELECT emp.id as empId, emp.name as empName, active as empActive, d.name as empDepartment
-      FROM employees emp JOIN department d ON emp.department_id = d.id;`);
+      FROM employees emp 
+        JOIN department d ON emp.department_id = d.id
+        JOIN app_users au ON emp.user_id = au.id
+      WHERE au.username="${username}";`);
     this.dbConnection.query(query, function (err, result) {
       if (err) throw err;
       return res.send({
@@ -66,28 +73,17 @@ export class AppService {
     active=${employee.active} WHERE id=${id};`,
       (err) => {
         if (err) throw err;
-        this.dbConnection.query(`SELECT * FROM employees WHERE
-         id = ${id};`,
-          function (err, result) {
-            if (err) throw err;
-            return res.send(result[0]);
-          });
+        return res.send({id: id});
     });
   }
 
+  // do for userId with token
   createEmployee(employee, res) {
     this.dbConnection.query(`INSERT INTO employees (name, department_id, active, user_id)
-    VALUES ("${employee.name}", "${employee.departmentId}", ${employee.active}, "${employee.userId}");`,
+    VALUES ("${employee.name}", "${employee.departmentId}", ${employee.active}, "0");`,
       (err, result) => {
         if(err) throw err;
-        console.log(result.insertId);
-        this.dbConnection.query(`SELECT * FROM employees WHERE
-         name = "${employee.name}" AND department_id = "${employee.departmentId}"
-          AND active = ${employee.active};`,
-          function (err, result) {
-            if (err) throw err;
-            return res.send(result[0]);
-          });
+        return res.send({id: result.insertId});
       });
   }
 
