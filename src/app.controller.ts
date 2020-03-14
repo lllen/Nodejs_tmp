@@ -21,31 +21,37 @@ export class AppController {
     return req.user;
   }
 
-  @UseGuards(JwtAuthGuard)
+  // @UseGuards(JwtAuthGuard)
   @Post("/employees")
   getEmployees(@Req() req, @Res() res) {
     return this.appService.getEmployees(req.body.searchValue, req.body.pageNumber, res);
   }
 
-  @UseGuards(JwtAuthGuard)
+  // @UseGuards(JwtAuthGuard)
   @Delete(`/employee/:id`)
   deleteEmployee(@Req() req, @Res() res) {
     return this.appService.deleteEmployee(req.params.id, res);
   }
 
-  @UseGuards(JwtAuthGuard)
+//  @UseGuards(JwtAuthGuard)
+  @Post("/employee")
+  createEmployee(@Req() req, @Res() res) {
+    return this.appService.createEmployee(req.body, res);
+  }
+
+  // @UseGuards(JwtAuthGuard)
   @Get(`/employee/:id`)
   getEmployee(@Req() req, @Res() res) {
     return this.appService.getEmployee(req.params.id, res);
   }
 
-  @UseGuards(JwtAuthGuard)
+  // @UseGuards(JwtAuthGuard)
   @Put(`/employee/:id`)
   updateEmployee(@Req() req, @Res() res) {
     return this.appService.updateEmployee(req.params.id, req.body, res);
   }
 
-  @UseGuards(JwtAuthGuard)
+  // @UseGuards(JwtAuthGuard)
   @Get(`/departments`)
   getDepartments(@Res() res) {
     return this.appService.getDepartments(res);
