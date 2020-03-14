@@ -1,8 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { DbConnectionService } from './dbConnection.service';
-import { NestFactory } from '@nestjs/core';
-import { AppModule } from './app.module';
-
+import * as jwt_decode from 'jwt-decode';
 
 @Injectable()
 export class AppService {
@@ -10,18 +8,10 @@ export class AppService {
 
   constructor(dbConnection: DbConnectionService) {
     this.dbConnection = dbConnection.getConnection();
-    this.enableCors();
   }
 
-  async enableCors() {
-    // const app = await NestFactory.create(AppModule);
-    // app.enableCors();
-    // await app.listen(3000);
-  }
-
-  // do for userId with token
-  getEmployees({searchValue, pageNumber, username}, res) {
-    console.log(username);
+  async getEmployees({searchValue, pageNumber}, headers, res) {
+    let username = this.extractToken(headers).username;
     let fromElement = (pageNumber-1)*10;
     let query;
     searchValue ?
@@ -58,10 +48,13 @@ export class AppService {
     });
   }
 
-  getEmployee(id, res) {
+  getEmployee(id, headers, res) {
+    let username = this.extractToken(headers).username;
     this.dbConnection.query(`SELECT emp.id, emp.name as name, active, d.name as department
-      FROM employees emp JOIN department d ON emp.department_id = d.id
-      WHERE emp.id=${id};`, function (err, result) {
+      FROM employees emp 
+        JOIN department d ON emp.department_id = d.id
+        JOIN app_users au ON emp.user_id = au.id
+      WHERE emp.id=${id} AND au.username="${username}";`, function (err, result) {
       if (err) throw err;
       return res.send(result[0]);
     });
@@ -77,10 +70,10 @@ export class AppService {
     });
   }
 
-  // do for userId with token
-  createEmployee(employee, res) {
+  async createEmployee(employee, headers, res) {
+    let id = await this.getUserId(this.extractToken(headers).username);
     this.dbConnection.query(`INSERT INTO employees (name, department_id, active, user_id)
-    VALUES ("${employee.name}", "${employee.departmentId}", ${employee.active}, "0");`,
+    VALUES ("${employee.name}", "${employee.departmentId}", ${employee.active}, "${id}");`,
       (err, result) => {
         if(err) throw err;
         return res.send({id: result.insertId});
@@ -92,6 +85,25 @@ export class AppService {
         if (err) throw err;
         return res.send(result);
       });
+  }
+
+  extractToken (headers) {
+    let token;
+    if (headers.authorization && headers.authorization.split(' ')[0] === 'Bearer') {
+      token = headers.authorization.split(' ')[1];
+      return jwt_decode(token);
+    }
+    return null;
+  }
+
+  getUserId (username) {
+    return new Promise<any>((resolve, reject) => {
+      this.dbConnection.query(`SELECT id FROM app_users
+                               WHERE username="${username}";`,
+        function (err, result) {
+          return err ? reject(err) : resolve(result[0].id);
+        })
+    });
   }
 
 }

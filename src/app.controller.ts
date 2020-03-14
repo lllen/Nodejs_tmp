@@ -23,9 +23,8 @@ export class AppController {
 
   @UseGuards(JwtAuthGuard)
   @Post("/employees")
-  getEmployees(@Req() req, @Res() res) {
-    console.log(req.body);
-    return this.appService.getEmployees(req.body, res);
+  async getEmployees(@Req() req, @Res() res) {
+    return this.appService.getEmployees(req.body, req.headers, res);
   }
 
   @UseGuards(JwtAuthGuard)
@@ -37,13 +36,13 @@ export class AppController {
   @UseGuards(JwtAuthGuard)
   @Post("/employee")
   createEmployee(@Req() req, @Res() res) {
-    return this.appService.createEmployee(req.body, res);
+    return this.appService.createEmployee(req.body, req.headers, res);
   }
 
   @UseGuards(JwtAuthGuard)
   @Get(`/employee/:id`)
   getEmployee(@Req() req, @Res() res) {
-    return this.appService.getEmployee(req.params.id, res);
+    return this.appService.getEmployee(req.params.id, req.headers, res);
   }
 
   @UseGuards(JwtAuthGuard)
