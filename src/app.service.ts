@@ -11,26 +11,25 @@ export class AppService {
   }
 
   async getEmployees({searchValue, pageNumber}, headers, res) {
-    let username = this.extractToken(headers).username;
-    let fromElement = (pageNumber-1)*10;
     let query;
-    searchValue ?
-      (query = `SELECT emp.id as empId, emp.name as empName, active as empActive, d.name as empDepartment
-      FROM employees emp 
+    let username = this.extractToken(headers).username;
+    let select = `SELECT emp.id as empId, emp.name as empName, active as empActive, d.name as empDepartment `;
+    query = searchValue ?
+      `FROM employees emp 
         JOIN department d ON emp.department_id = d.id
         JOIN app_users au ON emp.user_id = au.id
-      WHERE emp.name Like "${searchValue}%" AND au.username="${username}";`) :
-      (query = `SELECT emp.id as empId, emp.name as empName, active as empActive, d.name as empDepartment
-      FROM employees emp 
+      WHERE emp.name Like "${searchValue}%" AND au.username="${username}"` :
+      `FROM employees emp 
         JOIN department d ON emp.department_id = d.id
         JOIN app_users au ON emp.user_id = au.id
-      WHERE au.username="${username}";`);
-    this.dbConnection.query(query, function (err, result) {
+      WHERE au.username="${username}"`;
+    const amountOfRecords = await this.getAmountOfEmployees(`SELECT COUNT(emp.id) as amount ${query};`);
+    this.dbConnection.query(`${select} ${query} Limit 10;`, function (err, result) {
       if (err) throw err;
       return res.send({
-        numberOfRecords: result.length,
+        numberOfRecords: amountOfRecords.amount,
         pageNumber: pageNumber,
-        data: result.length > 10 ? result.splice(fromElement, 10) : result
+        data: result
       });
     });
   }
@@ -81,6 +80,14 @@ export class AppService {
         if (err) throw err;
         return res.send(result);
       });
+  }
+
+  getAmountOfEmployees(query) {
+    return new Promise<any>((resolve, reject) => {
+      this.dbConnection.query(query, function (err, result) {
+          return err ? reject(err) : resolve(result[0]);
+        })
+    });
   }
 
   extractToken (headers) {
